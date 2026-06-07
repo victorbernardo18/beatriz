@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Para Beatriz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a96e;
+    --gold-light: #e8d5b0;
+    --cream: #f5efe6;
+    --dark: #0a0806;
+    --dark2: #12100d;
+  }
+
+  html { scroll-snap-type: y mandatory; overflow-y: scroll; }
+
+  body {
+    background: var(--dark);
+    font-family: 'Cormorant Garamond', serif;
+    cursor: none;
+    overscroll-behavior: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+
+  /* ─── INTRO SCREEN ─── */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    transition: opacity 1.2s ease, visibility 1.2s ease;
+  }
+
+  #intro.hidden { opacity: 0; visibility: hidden; }
+
+  .intro-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 18vw, 6rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    letter-spacing: 0.05em;
+    opacity: 0;
+    animation: fadeUp 1.4s ease 0.3s forwards;
+  }
+
+  .intro-sub {
+    font-family: 'Jost', sans-serif;
+    font-size: clamp(0.65rem, 3vw, 0.8rem);
+    font-weight: 200;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0;
+    animation: fadeUp 1.4s ease 0.8s forwards;
+  }
+
+  .intro-line {
+    width: 1px;
+    height: 0;
+    background: var(--gold);
+    animation: growLine 1s ease 1.4s forwards;
+    margin: 0.5rem 0;
+  }
+
+  .intro-btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 200;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    background: transparent;
+    border: 1px solid rgba(201,169,110,0.3);
+    padding: 1rem 2.5rem;
+    cursor: pointer;
+    opacity: 0;
+    animation: fadeUp 1s ease 2s forwards;
+    transition: background 0.4s ease, border-color 0.4s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .intro-btn:hover, .intro-btn:active {
+    background: rgba(201,169,110,0.1);
+    border-color: var(--gold);
+  }
+
+  /* ─── MAIN SCROLL ─── */
+  main { position: relative; }
+
+  /* ─── SCENE ─── */
+  .scene {
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    scroll-snap-align: start;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .scene-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.08);
+    transition: transform 6s ease;
+    will-change: transform;
+  }
+
+  .scene.active .scene-bg { transform: scale(1); }
+
+  /* Gradient overlays */
+  .scene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(10,8,6,0.92) 0%,
+      rgba(10,8,6,0.4) 40%,
+      rgba(10,8,6,0.15) 70%,
+      rgba(10,8,6,0.3) 100%
+    );
+    z-index: 1;
+  }
+
+  .scene-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 2.5rem 2rem 4rem;
+    width: 100%;
+    max-width: 420px;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.9s ease 0.2s, transform 0.9s ease 0.2s;
+  }
+
+  .scene.active .scene-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scene-number {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 200;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 1.2rem;
+    display: block;
+  }
+
+  .scene-text {
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.55;
+    letter-spacing: 0.01em;
+  }
+
+  .scene-text em {
+    font-style: normal;
+    color: var(--gold-light);
+  }
+
+  /* Decorative divider */
+  .scene-divider {
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+    margin: 1.2rem auto;
+    opacity: 0.5;
+  }
+
+  /* ─── FINAL SCENE ─── */
+  #final {
+    height: 100dvh;
+    scroll-snap-align: start;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .final-glow {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    max-width: 300px;
+    max-height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,110,0.12) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  .final-ornament {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: none;
+    color: var(--gold);
+  }
+
+  #final.active .final-ornament {
+    animation: fadeUp 1s ease 0.2s forwards;
+  }
+
+  .final-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 10vw, 3.2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.2;
+    opacity: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  #final.active .final-title {
+    animation: fadeUp 1.2s ease 0.5s forwards;
+  }
+
+  .final-sub {
+    font-family: 'Jost', sans-serif;
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+    font-weight: 200;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 1.5rem;
+    opacity: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  #final.active .final-sub {
+    animation: fadeUp 1s ease 1s forwards;
+  }
+
+  .final-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    font-weight: 300;
+    color: var(--gold-light);
+    margin-top: 2.5rem;
+    opacity: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  #final.active .final-date {
+    animation: fadeUp 1s ease 1.4s forwards;
+  }
+
+  /* ─── MUSIC BUTTON ─── */
+  #music-btn {
+    position: fixed;
+    top: 1.2rem;
+    right: 1.2rem;
+    z-index: 500;
+    background: rgba(10,8,6,0.7);
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 200;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    display: none;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 2px;
+  }
+
+  #music-btn:hover { border-color: var(--gold); background: rgba(201,169,110,0.1); }
+
+  /* ─── PROGRESS ─── */
+  #progress {
+    position: fixed;
+    left: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .prog-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(201,169,110,0.25);
+    transition: all 0.4s ease;
+  }
+
+  .prog-dot.active {
+    background: var(--gold);
+    transform: scale(1.5);
+  }
+
+  /* ─── SCROLL HINT ─── */
+  .scroll-hint {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .scroll-hint.visible { opacity: 1; }
+
+  .scroll-hint span {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 200;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+  }
+
+  .scroll-arrow {
+    width: 1px;
+    height: 24px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollArrow 1.8s ease-in-out infinite;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes growLine {
+    to { height: 40px; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  }
+
+  @keyframes scrollArrow {
+    0%, 100% { transform: translateY(0); opacity: 0.6; }
+    50% { transform: translateY(6px); opacity: 1; }
+  }
+
+  /* photo placeholder styling */
+  .scene-bg[data-photo] {
+    background-color: #1a1510;
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor (desktop) -->
+<div class="cursor" id="cursor"></div>
+
+<!-- Intro -->
+<div id="intro">
+  <p class="intro-sub">12 de junho</p>
+  <h1 class="intro-name">Beatriz</h1>
+  <div class="intro-line"></div>
+  <button class="intro-btn" id="start-btn">Abrir ♡</button>
+</div>
+
+<!-- Music button -->
+<button id="music-btn" onclick="toggleMusic()">♪ Música</button>
+
+<!-- Progress dots -->
+<div id="progress"></div>
+
+<!-- Scroll hint -->
+<div class="scroll-hint" id="scroll-hint">
+  <span>deslize</span>
+  <div class="scroll-arrow"></div>
+</div>
+
+<!-- Hidden YouTube player -->
+<div id="yt-player" style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;z-index:-1;pointer-events:none;"></div>
+
+<!-- Scenes -->
+<main id="main">
+
+  <div class="scene" data-index="0">
+    <div class="scene-bg" style="background-image: url('fotos/foto1.jpg'); background-color:#1a1208;"></div>
+    <div class="scene-content">
+      <span class="scene-number">01 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Tem momentos que a gente não sabe que vão mudar tudo —<em> até olhar pra trás.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="1">
+    <div class="scene-bg" style="background-image: url('fotos/foto2.jpg'); background-color:#100e0a;"></div>
+    <div class="scene-content">
+      <span class="scene-number">02 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Aprendi que <em>felicidade</em> pode ter um rosto específico.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="2">
+    <div class="scene-bg" style="background-image: url('fotos/foto3.jpg'); background-color:#12100c;"></div>
+    <div class="scene-content">
+      <span class="scene-number">03 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Você ri e o mundo fica um pouco <em>menos sério.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="3">
+    <div class="scene-bg" style="background-image: url('fotos/foto4.jpg'); background-color:#0e0c09;"></div>
+    <div class="scene-content">
+      <span class="scene-number">04 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Tem um jeito que você olha — e eu esqueço o que ia falar.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="4">
+    <div class="scene-bg" style="background-image: url('fotos/foto5.jpg'); background-color:#131008;"></div>
+    <div class="scene-content">
+      <span class="scene-number">05 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Cada lugar que a gente foi <em>ficou mais bonito</em> porque você estava lá.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="5">
+    <div class="scene-bg" style="background-image: url('fotos/foto6.jpg'); background-color:#0f0d0a;"></div>
+    <div class="scene-content">
+      <span class="scene-number">06 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Você me ensinou que cuidar de alguém <em>não cansa —</em> quando é a pessoa certa.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="6">
+    <div class="scene-bg" style="background-image: url('fotos/foto7.jpg'); background-color:#110f0b;"></div>
+    <div class="scene-content">
+      <span class="scene-number">07 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Nos dias difíceis, você <em>não some.</em> Isso vale mais do que imagina.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="7">
+    <div class="scene-bg" style="background-image: url('fotos/foto8.jpg'); background-color:#0d0b08;"></div>
+    <div class="scene-content">
+      <span class="scene-number">08 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">A gente criou <em>um idioma próprio</em> — só nós dois entendemos.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="8">
+    <div class="scene-bg" style="background-image: url('fotos/foto9.jpg'); background-color:#121008;"></div>
+    <div class="scene-content">
+      <span class="scene-number">09 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Tem tardes que parecem eternas —<em> e eu quero que sejam.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="9">
+    <div class="scene-bg" style="background-image: url('fotos/foto10.jpg'); background-color:#100e0a;"></div>
+    <div class="scene-content">
+      <span class="scene-number">10 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Você é a parte dos meus planos <em>que não era plano.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="10">
+    <div class="scene-bg" style="background-image: url('fotos/foto11.jpg'); background-color:#0f0d09;"></div>
+    <div class="scene-content">
+      <span class="scene-number">11 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Sua presença <em>organiza o caos</em> que existe em mim.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="11">
+    <div class="scene-bg" style="background-image: url('fotos/foto12.jpg'); background-color:#13110c;"></div>
+    <div class="scene-content">
+      <span class="scene-number">12 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Você faz coisas pequenas com <em>uma graça que eu não sei descrever.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="12">
+    <div class="scene-bg" style="background-image: url('fotos/foto13.jpg'); background-color:#0e0c08;"></div>
+    <div class="scene-content">
+      <span class="scene-number">13 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">A gente não precisa de muito —<em> só de nós dois</em> já é o suficiente.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="13">
+    <div class="scene-bg" style="background-image: url('fotos/foto14.jpg'); background-color:#110f0b;"></div>
+    <div class="scene-content">
+      <span class="scene-number">14 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Cada foto aqui guarda um <em>calor</em> que foto nenhuma consegue de verdade.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="14">
+    <div class="scene-bg" style="background-image: url('fotos/foto15.jpg'); background-color:#0d0b08;"></div>
+    <div class="scene-content">
+      <span class="scene-number">15 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Escolheria você <em>de novo</em> — em qualquer versão de qualquer história.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="15">
+    <div class="scene-bg" style="background-image: url('fotos/foto16.jpg'); background-color:#121009;"></div>
+    <div class="scene-content">
+      <span class="scene-number">16 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Você <em>não me completa</em> — me faz querer ser inteiro pra te merecer.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="16">
+    <div class="scene-bg" style="background-image: url('fotos/foto17.jpg'); background-color:#100e0b;"></div>
+    <div class="scene-content">
+      <span class="scene-number">17 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">O futuro é incerto —<em> mas toda versão boa dele</em> tem você dentro.</p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="17">
+    <div class="scene-bg" style="background-image: url('fotos/foto18.jpg'); background-color:#0f0d0a;"></div>
+    <div class="scene-content">
+      <span class="scene-number">18 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Existem coisas que só fazem sentido <em>quando você está por perto.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="18">
+    <div class="scene-bg" style="background-image: url('fotos/foto19.jpg'); background-color:#13110d;"></div>
+    <div class="scene-content">
+      <span class="scene-number">19 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">Obrigado por <em>existir do jeito que você é.</em></p>
+    </div>
+  </div>
+
+  <div class="scene" data-index="19">
+    <div class="scene-bg" style="background-image: url('fotos/foto20.jpg'); background-color:#0e0c09;"></div>
+    <div class="scene-content">
+      <span class="scene-number">20 / 20</span>
+      <div class="scene-divider"></div>
+      <p class="scene-text">E por me deixar <em>te amar</em> — todos os dias.</p>
+    </div>
+  </div>
+
+  <!-- Final screen -->
+  <div id="final" data-index="20">
+    <div class="final-glow"></div>
+    <div class="final-ornament">✦</div>
+    <h2 class="final-title">Te amo,<br>Beatriz.</h2>
+    <p class="final-sub">Feliz dia dos namorados</p>
+    <p class="final-date">12 de junho</p>
+  </div>
+
+</main>
+
+<script>
+  // ─── Cursor (desktop only)
+  const cursor = document.getElementById('cursor');
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+  } else {
+    cursor.style.display = 'none';
+  }
+
+  // ─── YouTube IFrame API
+  let ytPlayer = null;
+  let musicPlaying = false;
+  let musicReady = false;
+
+  function loadYouTubeAPI() {
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  }
+
+  window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('yt-player', {
+      videoId: 'C75GNBpqM2c', // Next to Me - Rüfüs Du Sol
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        loop: 1,
+        playlist: 'C75GNBpqM2c',
+        rel: 0,
+        showinfo: 0,
+        modestbranding: 1
+      },
+      events: {
+        onReady: () => {
+          musicReady = true;
+          ytPlayer.setVolume(60);
+        }
+      }
+    });
+  };
+
+  function toggleMusic() {
+    const btn = document.getElementById('music-btn');
+    if (!musicReady) return;
+    if (musicPlaying) {
+      ytPlayer.pauseVideo();
+      btn.textContent = '♪ Música';
+      musicPlaying = false;
+    } else {
+      ytPlayer.playVideo();
+      btn.textContent = '⏸ Pausar';
+      musicPlaying = true;
+    }
+  }
+
+  function autoPlayMusic() {
+    if (musicReady && !musicPlaying) {
+      ytPlayer.playVideo();
+      musicPlaying = true;
+      document.getElementById('music-btn').textContent = '⏸ Pausar';
+    }
+  }
+
+  // ─── Intro
+  document.getElementById('start-btn').addEventListener('click', function() {
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('music-btn').style.display = 'block';
+    document.getElementById('progress').style.display = 'flex';
+    document.getElementById('scroll-hint').classList.add('visible');
+    loadYouTubeAPI();
+    setTimeout(autoPlayMusic, 1500);
+    setupScroll();
+    buildProgress();
+  });
+
+  // ─── Progress dots
+  const scenes = document.querySelectorAll('.scene, #final');
+  const totalScenes = scenes.length;
+
+  function buildProgress() {
+    const prog = document.getElementById('progress');
+    scenes.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'prog-dot';
+      dot.dataset.index = i;
+      prog.appendChild(dot);
+    });
+  }
+
+  function updateProgress(index) {
+    document.querySelectorAll('.prog-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
+
+  // ─── Scroll + IntersectionObserver
+  let currentIndex = 0;
+  let scrollSetup = false;
+
+  function setupScroll() {
+    if (scrollSetup) return;
+    scrollSetup = true;
+
+    const hint = document.getElementById('scroll-hint');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+          const el = entry.target;
+          el.classList.add('active');
+          const idx = parseInt(el.dataset.index ?? el.id === 'final' ? totalScenes - 1 : 0);
+          currentIndex = idx;
+          updateProgress(idx);
+
+          // Hide scroll hint after first scene
+          if (idx > 0) hint.classList.remove('visible');
+
+          // Parallax: activate bg zoom
+          el.querySelectorAll?.('.scene-bg');
+        } else {
+          entry.target.classList.remove('active');
+        }
+      });
+    }, { threshold: 0.5 });
+
+    scenes.forEach(scene => observer.observe(scene));
+
+    // Set data-index on final
+    document.getElementById('final').dataset.index = totalScenes - 1;
+  }
+</script>
+</body>
+</html>

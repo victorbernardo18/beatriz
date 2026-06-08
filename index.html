@@ -639,6 +639,7 @@
   let ytPlayer = null;
   let musicPlaying = false;
   let musicReady = false;
+  let shouldAutoPlay = false;
 
   function loadYouTubeAPI() {
     const tag = document.createElement('script');
@@ -648,7 +649,7 @@
 
   window.onYouTubeIframeAPIReady = function() {
     ytPlayer = new YT.Player('yt-player', {
-      videoId: 'C75GNBpqM2c', // Next to Me - Rüfüs Du Sol
+      videoId: 'C75GNBpqM2c',
       playerVars: {
         autoplay: 0,
         controls: 0,
@@ -659,9 +660,14 @@
         modestbranding: 1
       },
       events: {
-        onReady: () => {
+        onReady: (event) => {
           musicReady = true;
-          ytPlayer.setVolume(60);
+          event.target.setVolume(60);
+          if (shouldAutoPlay) {
+            event.target.playVideo();
+            musicPlaying = true;
+            document.getElementById('music-btn').textContent = '⏸ Pausar';
+          }
         }
       }
     });
@@ -682,6 +688,7 @@
   }
 
   function autoPlayMusic() {
+    shouldAutoPlay = true;
     if (musicReady && !musicPlaying) {
       ytPlayer.playVideo();
       musicPlaying = true;

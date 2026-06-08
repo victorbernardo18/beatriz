@@ -426,8 +426,10 @@
   <div class="scroll-arrow"></div>
 </div>
 
-<!-- Hidden YouTube player -->
-<div id="yt-player" style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;z-index:-1;pointer-events:none;"></div>
+<!-- Hidden audio player -->
+<audio id="audio-player" loop>
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
 
 <!-- Scenes -->
 <main id="main">
@@ -636,64 +638,30 @@
   }
 
   // ─── YouTube IFrame API
-  let ytPlayer = null;
+  const audio = document.getElementById('audio-player');
   let musicPlaying = false;
-  let musicReady = false;
-  let shouldAutoPlay = false;
-
-  function loadYouTubeAPI() {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.head.appendChild(tag);
-  }
-
-  window.onYouTubeIframeAPIReady = function() {
-    ytPlayer = new YT.Player('yt-player', {
-      videoId: 'C75GNBpqM2c',
-      playerVars: {
-        autoplay: 0,
-        controls: 0,
-        loop: 1,
-        playlist: 'C75GNBpqM2c',
-        rel: 0,
-        showinfo: 0,
-        modestbranding: 1
-      },
-      events: {
-        onReady: (event) => {
-          musicReady = true;
-          event.target.setVolume(60);
-          if (shouldAutoPlay) {
-            event.target.playVideo();
-            musicPlaying = true;
-            document.getElementById('music-btn').textContent = '⏸ Pausar';
-          }
-        }
-      }
-    });
-  };
+  audio.volume = 0.6;
 
   function toggleMusic() {
     const btn = document.getElementById('music-btn');
-    if (!musicReady) return;
     if (musicPlaying) {
-      ytPlayer.pauseVideo();
+      audio.pause();
       btn.textContent = '♪ Música';
       musicPlaying = false;
     } else {
-      ytPlayer.playVideo();
+      audio.play();
       btn.textContent = '⏸ Pausar';
       musicPlaying = true;
     }
   }
 
   function autoPlayMusic() {
-    shouldAutoPlay = true;
-    if (musicReady && !musicPlaying) {
-      ytPlayer.playVideo();
+    audio.play().then(() => {
       musicPlaying = true;
       document.getElementById('music-btn').textContent = '⏸ Pausar';
-    }
+    }).catch(() => {
+      // navegador bloqueou — usuário pode iniciar manualmente pelo botão
+    });
   }
 
   // ─── Intro
@@ -702,8 +670,7 @@
     document.getElementById('music-btn').style.display = 'block';
     document.getElementById('progress').style.display = 'flex';
     document.getElementById('scroll-hint').classList.add('visible');
-    loadYouTubeAPI();
-    setTimeout(autoPlayMusic, 1500);
+    autoPlayMusic();
     setupScroll();
     buildProgress();
   });
